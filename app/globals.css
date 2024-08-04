@@ -31,3 +31,40 @@ body {
     text-wrap: balance;
   }
 }
+
+main {
+  height: calc(100% - 1rem);
+}
+
+.messages {
+  max-width: 100%;
+  overflow-x: hidden;
+  max-height: calc(100% - 3.5rem);
+  overflow-y: scroll;
+  padding: 1rem;
+}
+
+/* Style for WebKit browsers (Chrome, Safari) */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* Track background color */
+}
+
+::-webkit-scrollbar-thumb {
+  background: white; /* Thumb color */
+  border-radius: 2px; /* Rounded corners */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d1d1d1; /* Color of the thumb when hovered */
+}
+
+/* For Firefox */
+.scrollable-element {
+  scrollbar-width: thin; /* Thin scrollbar */
+  scrollbar-color: white transparent; /* Thumb color and track color */
+  padding-right: 8px; /* Add padding to the right to create margin space */
+}
