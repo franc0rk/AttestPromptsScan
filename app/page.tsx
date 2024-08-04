@@ -45,7 +45,7 @@ export default function Home() {
     setError(null);
 
     try {
-      const response = await axios.get("/api");
+      const response = await axios.post("/api/llm");
       const jsonString = response.data.data.replace(/```json|```/g, "").trim();
 
       const parsedData = JSON.parse(jsonString);
