@@ -3,24 +3,25 @@
 import axios from "axios";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import TypingEffect from "./components/TypingEffect";
+import DataTable from "./components/DataTable";
 
 export default function Home() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const [responseData, setResponseData] = useState<string>("");
+  const [responseData, setResponseData] = useState<any>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const [chatMessages, setChatMessages] = useState<
-    { message: string; send?: boolean }[]
-  >([
-    { message: "one two three four five six seven", send: true },
-    // ... (other messages)
-  ]);
+    { message: string; sent?: boolean }[]
+  >([]);
 
   const [currentMessage, setCurrentMessage] = useState<string>("");
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
-  const [showCursor, setShowCursor] = useState<boolean>(false);
+  const [content, setContent] = useState<{ key: string; component: string }[]>(
+    []
+  );
 
   useEffect(() => {
     if (messagesContainerRef.current) {
@@ -36,7 +37,7 @@ export default function Home() {
   };
 
   function addMessage() {
-    setChatMessages([...chatMessages, { message: currentMessage }]);
+    setChatMessages([...chatMessages, { message: currentMessage, sent: true }]);
     setCurrentMessage("");
   }
 
@@ -49,6 +50,7 @@ export default function Home() {
       const jsonString = response.data.data.replace(/```json|```/g, "").trim();
 
       const parsedData = JSON.parse(jsonString);
+      setContent(parsedData.content);
       setCurrentAnswer(parsedData.message);
 
       if (Array.isArray(parsedData.url)) {
@@ -107,13 +109,16 @@ export default function Home() {
         <section>History</section>
       </aside>
       <article className="w-5/6 p-4 h-full">
-        <header className="h-8 border">
-          <div>
+        <header className="px-6 py-2 border rounded-md">
+          <section className="network">
+            <div className="text-center">You are at chain: Base</div>
+          </section>
+          <section className="data">
             <span>ETH Price: $2800</span> - <span>Gas Fee: 2000</span>
-          </div>
+          </section>
         </header>
         <main>
-          <div className="w-full h-full border mx-auto">
+          <div className="w-full h-full  mx-auto">
             <div className="flex flex-col w-full h-full">
               <section
                 ref={messagesContainerRef}
@@ -122,21 +127,33 @@ export default function Home() {
                 {chatMessages.map((msg, index) => (
                   <div
                     key={index}
-                    className={`border rounded-md p-1 my-1 max-w-48 ${
-                      msg.send ? "self-end mr-2" : "self-start ml-2"
+                    className={`border rounded-md px-3 py-1 my-1 max-w-48 ${
+                      msg.sent ? "self-end mr-2" : "self-start ml-2"
                     }`}
                   >
                     {msg.message}
                   </div>
                 ))}
                 <div className="my-8">
-                  <div className="w-auto">{currentAnswer}</div>
-                  {showCursor && (
-                    <div className="w-1 h-4 bg-white animate-blink"></div>
+                  <TypingEffect text={currentAnswer} speed={50} />
+                  <br />
+                  {loading && (
+                    <div className="animate-blink w-8 h-8 bg-white mt-8"></div>
                   )}
+                  {content.map((section) => (
+                    <div>
+                      {responseData.items && section.component === "table" && (
+                        <DataTable
+                          data={responseData.items}
+                          columns={[]}
+                          key={section.key}
+                        />
+                      )}
+                    </div>
+                  ))}
                 </div>
               </section>
-              <section className="mt-auto">
+              <section className="mt-auto mb-4">
                 <form onSubmit={handleSubmit}>
                   <div className="relative">
                     <input

@@ -33,7 +33,7 @@ body {
 }
 
 main {
-  height: calc(100% - 1rem);
+  height: calc(100% - 3.5rem);
 }
 
 .messages {
@@ -67,4 +67,35 @@ main {
   scrollbar-width: thin; /* Thin scrollbar */
   scrollbar-color: white transparent; /* Thumb color and track color */
   padding-right: 8px; /* Add padding to the right to create margin space */
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-in {
+  animation: slide-in 1s ease-out;
 }
