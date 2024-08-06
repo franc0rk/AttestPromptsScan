@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import TypingEffect from "./components/TypingEffect";
 import DataTable from "./components/DataTable";
+import { ethers } from "ethers";
+import WorldCoinButton from "./components/WorldCoinButton";
 
 export default function Home() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -77,6 +79,18 @@ export default function Home() {
     }
   }
 
+  const [address, setAddress] = useState("");
+  const [network, setNetwork] = useState("Base");
+
+  async function connectWallet() {
+    // @ts-ignore
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner();
+    const address = await signer.getAddress();
+    setAddress(address);
+  }
+
   return (
     <div className="flex flex-wrap h-screen">
       <aside className="w-1/6 border-r h-full p-4">
@@ -85,22 +99,42 @@ export default function Home() {
             <Image src="/logo.png" alt="Logo" width={100} height={100} />
           </div>
         </section>
-        <section>
-          <button className="px-4 py-2 border-2 rounded-md mb-4">
-            Connect Wallet
-          </button>
-          <button className="px-4 py-2 border-2 rounded-md mb-4">
-            Sign in with Worldcoin
-          </button>
+        <section className="flex flex-col">
+          {address ? (
+            <button
+              onClick={() => setAddress("")}
+              className="px-4 py-2 border-2 rounded-md mb-4 text-xs h-12 font-bold"
+            >
+              Disconnect
+              <br />
+              <small className="font-xs">{address.slice(0, 9)}...</small>
+            </button>
+          ) : (
+            <button
+              onClick={connectWallet}
+              className="px-4 py-2 border-2 rounded-md mb-4 text-xs h-12 font-bold"
+            >
+              Connect Wallet
+            </button>
+          )}
+          {!address && <WorldCoinButton connected={(e) => setAddress(e)} />}
         </section>
-        <section>
+        <section className="flex flex-col">
           <label htmlFor="network-select">Select Network:</label>
           <select
             id="network-select"
             className="rounded-full py-1 bg-transparent border-2 px-4 mb-4"
+            onChange={(e) => setNetwork(e.target.value)}
           >
-            <option value="1">Base</option>
-            <option value="2">Optimism</option>
+            <option className="bg-black text-white" value="Base">
+              Base
+            </option>
+            <option className="bg-black text-white" value="Optimism">
+              Optimism
+            </option>
+            <option className="bg-black text-white" value="Ethereum">
+              Ethereum (mainnet)
+            </option>
           </select>
           <div className="relative">
             Dev Mode <input type="checkbox" />
@@ -111,7 +145,24 @@ export default function Home() {
       <article className="w-5/6 p-4 h-full">
         <header className="px-6 py-2 border rounded-md">
           <section className="network">
-            <div className="text-center">You are at chain: Base</div>
+            <div className="text-center mt-1">
+              You are at chain: <span></span>
+              {network === "Base" && (
+                <span className="bg-blue-500 px-2 py-1 rounded-md font-bold">
+                  Base
+                </span>
+              )}
+              {network === "Optimism" && (
+                <span className="bg-red-500 px-2 py-1 rounded-md font-bold">
+                  Optimism
+                </span>
+              )}
+              {network === "Ethereum" && (
+                <span className="bg-purple-500 px-2 py-1 rounded-md font-bold">
+                  Ethereum (mainnet)
+                </span>
+              )}
+            </div>
           </section>
           <section className="data">
             <span>ETH Price: $2800</span> - <span>Gas Fee: 2000</span>
