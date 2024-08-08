@@ -7,6 +7,7 @@ import TypingEffect from "./components/TypingEffect";
 import DataTable from "./components/DataTable";
 import { ethers } from "ethers";
 import WorldCoinButton from "./components/WorldCoinButton";
+import { attest } from "./services/eas";
 
 export default function Home() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -16,7 +17,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const [chatMessages, setChatMessages] = useState<
-    { message: string; sent?: boolean }[]
+    { message: string; sent?: boolean; attestation?: string }[]
   >([]);
 
   const [currentMessage, setCurrentMessage] = useState<string>("");
@@ -48,7 +49,10 @@ export default function Home() {
     setError(null);
 
     try {
-      const response = await axios.post("/api/llm");
+      const response = await axios.post("/api/llm", {
+        message: currentMessage,
+        params: { network, address },
+      });
       const jsonString = response.data.data.replace(/```json|```/g, "").trim();
 
       const parsedData = JSON.parse(jsonString);
@@ -79,16 +83,31 @@ export default function Home() {
     }
   }
 
+  const [signer, setSigner] = useState<any>(null);
   const [address, setAddress] = useState("");
-  const [network, setNetwork] = useState("Base");
+  const [network, setNetwork] = useState("Optimism-Sepolia");
 
   async function connectWallet() {
     // @ts-ignore
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
-    const address = await signer.getAddress();
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const _signer = await provider.getSigner();
+    const address = await _signer.getAddress();
+
+    setSigner(_signer);
     setAddress(address);
+  }
+
+  async function attestPrompt(msg: any, msgIndex: number) {
+    const { attestationUid } = await attest(signer, {
+      prompt: msg.message,
+      tags: ["#transactions"],
+    });
+    setChatMessages((messages) => {
+      return messages.map((m: any, i: number) => ({
+        ...m,
+        attestation: i === msgIndex && attestationUid,
+      }));
+    });
   }
 
   return (
@@ -124,16 +143,20 @@ export default function Home() {
           <select
             id="network-select"
             className="rounded-full py-1 bg-transparent border-2 px-4 mb-4"
+            value={network}
             onChange={(e) => setNetwork(e.target.value)}
           >
+            <option className="bg-black text-white" value="Ethereum">
+              Ethereum (mainnet)
+            </option>
             <option className="bg-black text-white" value="Base">
               Base
             </option>
             <option className="bg-black text-white" value="Optimism">
               Optimism
             </option>
-            <option className="bg-black text-white" value="Ethereum">
-              Ethereum (mainnet)
+            <option className="bg-black text-white" value="Optimism-Sepolia">
+              Optimism-Sepolia (testnet)
             </option>
           </select>
           <div className="relative">
@@ -152,9 +175,9 @@ export default function Home() {
                   Base
                 </span>
               )}
-              {network === "Optimism" && (
+              {network.includes("Optimism") && (
                 <span className="bg-red-500 px-2 py-1 rounded-md font-bold">
-                  Optimism
+                  {network}
                 </span>
               )}
               {network === "Ethereum" && (
@@ -175,21 +198,40 @@ export default function Home() {
                 ref={messagesContainerRef}
                 className="flex flex-col messages"
               >
-                {chatMessages.map((msg, index) => (
+                {chatMessages.map((msg, msgIndex) => (
                   <div
-                    key={index}
-                    className={`border rounded-md px-3 py-1 my-1 max-w-48 ${
+                    key={msgIndex}
+                    className={`text-lg border rounded-md px-3 py-2 my-1 max-w-48 ${
                       msg.sent ? "self-end mr-2" : "self-start ml-2"
                     }`}
                   >
                     {msg.message}
+                    {address && msg.sent && (
+                      <div>
+                        {msg.attestation ? (
+                          <a
+                            href={`https://optimism-sepolia.easscan.org/attestation/view/${msg.attestation}`}
+                            className="text-xs font-bold px-2 py-1 border rounded-md"
+                          >
+                            View
+                          </a>
+                        ) : (
+                          <button
+                            onClick={() => attestPrompt(msg, msgIndex)}
+                            className="text-xs font-bold px-2 py-1 border rounded-md"
+                          >
+                            Attest
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
                 <div className="my-8">
                   <TypingEffect text={currentAnswer} speed={50} />
                   <br />
                   {loading && (
-                    <div className="animate-blink w-8 h-8 bg-white mt-8"></div>
+                    <div className="animate-blink w-4 h-4 bg-white my-8"></div>
                   )}
                   {content.map((section) => (
                     <div>

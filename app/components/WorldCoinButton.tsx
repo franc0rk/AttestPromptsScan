@@ -14,11 +14,11 @@ const WorldCoinButton: React.FC<WorldCoinButtonProps> = ({ connected }) => {
       onClick={getWorldId}
       className="px-4 py-2 border-2 rounded-md mb-4 text-xs h-12 font-bold"
     >
-      <div className="flex items-center">
+      <div className="flex items-center justify-center">
         <div className="ml-2">
           <img width={20} height={20} src="/worldcoin.png" alt="worldcoin" />
         </div>
-        <div className="ml-6">
+        <div className="ml-2">
           Sign in
           <br />
           with Worldcoin

@@ -15,10 +15,10 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
       <section className="p-4 bg-gray-800 flex justify-between items-center">
         <ul className="flex space-x-4 text-sm">
           <li className="cursor-pointer hover:text-gray-400">
-            Customize columns <i className="settings" />
+            <i className="settings">⚙️</i> Customize columns
           </li>
           <li className="cursor-pointer hover:text-gray-400">
-            Filters <i className="filters" />
+            <i className="filters">🔍</i>Filters
           </li>
         </ul>
       </section>
@@ -59,10 +59,10 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
                   {row.to.hash.slice(0, 9)}
                 </td>
                 <td className="px-2 py-1 border border-white">
-                  {row.amount || 0}
+                  {Number(row.value) / 1000000000000000000 || 0} ETH
                 </td>
                 <td className="px-2 py-1 border border-white">
-                  {row.fee.value}
+                  {Number(row.fee.value) / 1000000000000000000 || 0}
                 </td>
               </tr>
             ))}
