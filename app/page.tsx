@@ -8,6 +8,8 @@ import DataTable from "./components/DataTable";
 import { ethers } from "ethers";
 import WorldCoinButton from "./components/WorldCoinButton";
 import { attest } from "./services/eas";
+import { getHistory } from "./services/history";
+import HistoryList from "./components/HistoryList";
 
 export default function Home() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -110,6 +112,19 @@ export default function Home() {
     });
   }
 
+  const [history, setHistory] = useState<any>([]);
+
+  async function fetchHistory() {
+    const hist = await getHistory(signer);
+    setHistory(hist);
+  }
+
+  useEffect(() => {
+    if (signer) {
+      fetchHistory();
+    }
+  }, [signer]);
+
   return (
     <div className="flex flex-wrap h-screen">
       <aside className="w-1/6 border-r h-full p-4">
@@ -159,11 +174,16 @@ export default function Home() {
               Optimism-Sepolia (testnet)
             </option>
           </select>
-          <div className="relative">
+          <div className="relative mb-4">
             Dev Mode <input type="checkbox" />
           </div>
         </section>
-        <section>History</section>
+        {address && (
+          <section>
+            <h4 className="mb-4">History</h4>
+            <HistoryList history={history} />
+          </section>
+        )}
       </aside>
       <article className="w-5/6 p-4 h-full">
         <header className="px-6 py-2 border rounded-md">
