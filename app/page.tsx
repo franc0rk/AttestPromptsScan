@@ -8,7 +8,7 @@ import DataTable from "./components/DataTable";
 import { ethers } from "ethers";
 import WorldCoinButton from "./components/WorldCoinButton";
 import { attest } from "./services/eas";
-import { getHistory } from "./services/history";
+import { getAllPromptsBySchema, getHistory } from "./services/history";
 import HistoryList from "./components/HistoryList";
 import {
   FaClock,
@@ -130,18 +130,26 @@ export default function Home() {
     setHistory(hist);
   }
 
-  function selectTrendPrompt() {
-    setCurrentMessage("hey");
-    setChatMessages([...chatMessages, { message: "hey", sent: true }]);
+  function selectTrendPrompt(msg: string) {
+    setCurrentMessage(msg);
+    setChatMessages([...chatMessages, { message: msg, sent: true }]);
     setCurrentMessage("");
-    fetchTransactionData("hey");
+    fetchTransactionData(msg);
   }
 
   useEffect(() => {
     if (signer) {
       fetchHistory();
+      fetchAllPrompts();
     }
   }, [signer]);
+
+  const [allPrompts, setAllPrompts] = useState<any[]>([]);
+
+  async function fetchAllPrompts() {
+    const prompts = await getAllPromptsBySchema(signer);
+    setAllPrompts(prompts);
+  }
 
   return (
     <div className="flex flex-wrap h-screen">
@@ -331,101 +339,99 @@ export default function Home() {
               </section>
 
               <section className="mt-auto mb-4">
-                <div className="relative my-2">
-                  <div className="w-full h-96">
-                    <div className="flex flex-wrap h-full">
-                      <div className="w-1/3 p-8">
-                        <div className="p-4 border rounded-md h-full">
-                          <section>
-                            <h2 className="font-bold mb-1">
-                              <div className="flex items-center">
-                                <FaArrowTrendUp className="mr-2" />
-                                Trend
+                {signer && !currentMessage && (
+                  <div className="relative my-2">
+                    <div className="w-full h-96">
+                      <div className="flex flex-wrap h-full">
+                        <div className="w-1/3 p-8">
+                          <div className="p-4 border rounded-md h-full">
+                            <section>
+                              <h2 className="font-bold mb-1">
+                                <div className="flex items-center">
+                                  <FaArrowTrendUp className="mr-2" />
+                                  Trend
+                                </div>
+                              </h2>
+                              <p className="text-xs">Query trend prompts.</p>
+                            </section>
+                            <section className="flex p-4">
+                              <div className="mr-2 border rounded-full text-xs px-3 py-1 bg-white text-black">
+                                all
                               </div>
-                            </h2>
-                            <p className="text-xs">Query trend prompts.</p>
-                          </section>
-                          <section className="flex p-4">
-                            <div className="mr-2 border rounded-full text-xs px-3 py-1 bg-white text-black">
-                              all
-                            </div>
-                            <div className="mr-2 border rounded-full text-xs px-3 py-1">
-                              #transactions
-                            </div>
-                            <div className="mr-2 border rounded-full text-xs px-3 py-1">
-                              #nfts
-                            </div>
-                            <div className="mr-2 border rounded-full text-xs px-3 py-1">
-                              #tokens
-                            </div>
-                            <div className="mr-2 border rounded-full text-xs px-3 py-1">
-                              more...
-                            </div>
-                          </section>
-                          <section>
-                            <div className="flex flex-col px-4">
-                              <div
-                                className="border rounded-md px-2 py-1 mb-2 cursor-pointer hover:bg-white hover:text-black"
-                                onClick={selectTrendPrompt}
-                              >
-                                hey
+                              <div className="mr-2 border rounded-full text-xs px-3 py-1">
+                                #transactions
                               </div>
-                              <div className="border rounded-md px-2 py-1 mb-2 cursor-pointer hover:bg-white hover:text-black">
-                                show my latest transactions
+                              <div className="mr-2 border rounded-full text-xs px-3 py-1">
+                                #nfts
                               </div>
-                              <div className="border rounded-md px-2 py-1 mb-2 cursor-pointer hover:bg-white hover:text-black">
-                                show my nfts in a gallery format
+                              <div className="mr-2 border rounded-full text-xs px-3 py-1">
+                                #tokens
                               </div>
-                            </div>
-                          </section>
+                              <div className="mr-2 border rounded-full text-xs px-3 py-1">
+                                more...
+                              </div>
+                            </section>
+                            <section>
+                              <div className="flex flex-col px-4">
+                                {allPrompts.slice(0, 3).map((p) => (
+                                  <div
+                                    className="border rounded-md px-2 py-1 mb-2 cursor-pointer hover:bg-white hover:text-black"
+                                    onClick={() => selectTrendPrompt(p.prompt)}
+                                  >
+                                    {p.prompt}
+                                  </div>
+                                ))}
+                              </div>
+                            </section>
+                          </div>
                         </div>
-                      </div>
-                      <div className="w-1/3 p-8">
-                        <div className="p-4 border rounded-md h-full">
-                          <section>
-                            <h2 className="font-bold mb-1">
-                              <div className="flex items-center">
-                                <FaGlobe className="mr-2" />
-                                Social
+                        <div className="w-1/3 p-8">
+                          <div className="p-4 border rounded-md h-full">
+                            <section>
+                              <h2 className="font-bold mb-1">
+                                <div className="flex items-center">
+                                  <FaGlobe className="mr-2" />
+                                  Social
+                                </div>
+                              </h2>
+                              <p className="text-xs">
+                                Explore around many prompts.
+                              </p>
+                            </section>
+                            <section>
+                              <div className="w-52 h-52 mx-auto">
+                                <img
+                                  className="w-full h-full"
+                                  src="/socialimg.png"
+                                />
                               </div>
-                            </h2>
-                            <p className="text-xs">
-                              Explore around many prompts.
-                            </p>
-                          </section>
-                          <section>
-                            <div className="w-52 h-52 mx-auto">
-                              <img
-                                className="w-full h-full"
-                                src="/socialimg.png"
-                              />
-                            </div>
-                          </section>
-                          <section>
-                            <div className="flex justify-center">
-                              <button className="border-2 font-bold px-8 py-2 rounded-md">
-                                Explore
-                              </button>
-                            </div>
-                          </section>
+                            </section>
+                            <section>
+                              <div className="flex justify-center">
+                                <button className="border-2 font-bold px-8 py-2 rounded-md">
+                                  Explore
+                                </button>
+                              </div>
+                            </section>
+                          </div>
                         </div>
-                      </div>
-                      <div className="w-1/3 p-8">
-                        <div className="p-4 border rounded-md h-full">
-                          <section>
-                            <div className="flex items-center">
-                              <FaTools className="mr-2" />
-                              Fix
-                            </div>
-                            <p className="text-xs">
-                              Fix prompts and get rewards.
-                            </p>
-                          </section>
+                        <div className="w-1/3 p-8">
+                          <div className="p-4 border rounded-md h-full">
+                            <section>
+                              <div className="flex items-center">
+                                <FaTools className="mr-2" />
+                                Fix
+                              </div>
+                              <p className="text-xs">
+                                Fix prompts and get rewards.
+                              </p>
+                            </section>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
                 <form onSubmit={handleSubmit}>
                   <div className="relative">
                     <input
