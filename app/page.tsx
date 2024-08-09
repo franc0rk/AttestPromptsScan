@@ -10,6 +10,14 @@ import WorldCoinButton from "./components/WorldCoinButton";
 import { attest } from "./services/eas";
 import { getHistory } from "./services/history";
 import HistoryList from "./components/HistoryList";
+import {
+  FaClock,
+  FaCube,
+  FaEthereum,
+  FaExchangeAlt,
+  FaGasPump,
+  FaWallet,
+} from "react-icons/fa";
 
 export default function Home() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -187,29 +195,74 @@ export default function Home() {
       </aside>
       <article className="w-5/6 p-4 h-full">
         <header className="px-6 py-2 border rounded-md">
-          <section className="network">
-            <div className="text-center mt-1">
-              You are at chain: <span></span>
-              {network === "Base" && (
-                <span className="bg-blue-500 px-2 py-1 rounded-md font-bold">
-                  Base
-                </span>
-              )}
-              {network.includes("Optimism") && (
-                <span className="bg-red-500 px-2 py-1 rounded-md font-bold">
-                  {network}
-                </span>
-              )}
-              {network === "Ethereum" && (
-                <span className="bg-purple-500 px-2 py-1 rounded-md font-bold">
-                  Ethereum (mainnet)
-                </span>
-              )}
+          <div className="flex items-center">
+            <div className="flex-1">
+              <section className="network mb-2">
+                <div className="mt-1">
+                  You are at chain: <span></span>
+                  {network === "Base" && (
+                    <span className="bg-blue-500 px-2 py-1 rounded-md font-bold">
+                      Base
+                    </span>
+                  )}
+                  {network.includes("Optimism") && (
+                    <span className="bg-red-500 px-2 py-1 rounded-md font-bold">
+                      {network}
+                    </span>
+                  )}
+                  {network === "Ethereum" && (
+                    <span className="bg-purple-500 px-2 py-1 rounded-md font-bold">
+                      Ethereum (mainnet)
+                    </span>
+                  )}
+                </div>
+              </section>
+              <section className="data flex">
+                <div className="flex items-center mr-2">
+                  <FaEthereum className="mr-2" /> ETH Price: $2800.21
+                </div>
+                <div className="flex items-center">
+                  <FaGasPump className="mr-2" /> Gas Tracker: $0.17
+                </div>
+              </section>
             </div>
-          </section>
-          <section className="data">
-            <span>ETH Price: $2800</span> - <span>Gas Fee: 2000</span>
-          </section>
+            <div className="">
+              <div className="grid grid-cols-4 h-full w-full border rounded">
+                {/* Grid Item 1 */}
+                <div className="flex flex-col items-center justify-center p-2 border border-gray-200">
+                  <FaCube />
+                  <span className="mt-1 text-xs font-bold text-white">
+                    Total Blocks
+                  </span>
+                  <div className="text-xs">3,000,000</div>
+                </div>
+                {/* Grid Item 2 */}
+                <div className="flex flex-col items-center justify-center  p-2 border border-gray-200">
+                  <FaExchangeAlt />
+                  <span className="mt-1 text-xs font-bold text-white">
+                    Total transactions
+                  </span>
+                  <div className="text-xs">3,000,000</div>
+                </div>
+                {/* Grid Item 3 */}
+                <div className="flex flex-col items-center justify-center p-2 border border-gray-200">
+                  <FaClock />
+                  <span className="mt-1 text-xs font-bold text-white">
+                    Average Block Time
+                  </span>
+                  <div className="text-xs">2.35s</div>
+                </div>
+                {/* Grid Item 4 */}
+                <div className="flex flex-col items-center justify-center p-2 border border-gray-200">
+                  <FaWallet />
+                  <span className="mt-1 text-xs font-bold text-white">
+                    Wallet addreses
+                  </span>
+                  <div className="text-xs">3,000,000</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </header>
         <main>
           <div className="w-full h-full  mx-auto">
@@ -276,7 +329,7 @@ export default function Home() {
                       onChange={(e) => setCurrentMessage(e.target.value)}
                     />
                     <button
-                      className="absolute bottom-2 right-2 border rounded-md p-1 text-xs"
+                      className="absolute bottom-2 right-2 border-2 font-bold rounded-md p-1 text-xs"
                       type="submit"
                     >
                       &gt;
