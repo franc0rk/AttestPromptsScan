@@ -16,8 +16,11 @@ import {
   FaEthereum,
   FaExchangeAlt,
   FaGasPump,
+  FaGlobe,
+  FaTools,
   FaWallet,
 } from "react-icons/fa";
+import { FaArrowTrendUp } from "react-icons/fa6";
 
 export default function Home() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -43,10 +46,10 @@ export default function Home() {
     }
   }, [chatMessages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    e && e.preventDefault();
     addMessage();
-    fetchTransactionData();
+    fetchTransactionData(currentMessage);
   };
 
   function addMessage() {
@@ -54,13 +57,13 @@ export default function Home() {
     setCurrentMessage("");
   }
 
-  async function fetchTransactionData() {
+  async function fetchTransactionData(_msg: string) {
     setLoading(true);
     setError(null);
 
     try {
       const response = await axios.post("/api/llm", {
-        message: currentMessage,
+        message: _msg,
         params: { network, address },
       });
       const jsonString = response.data.data.replace(/```json|```/g, "").trim();
@@ -125,6 +128,13 @@ export default function Home() {
   async function fetchHistory() {
     const hist = await getHistory(signer);
     setHistory(hist);
+  }
+
+  function selectTrendPrompt() {
+    setCurrentMessage("hey");
+    setChatMessages([...chatMessages, { message: "hey", sent: true }]);
+    setCurrentMessage("");
+    fetchTransactionData("hey");
   }
 
   useEffect(() => {
@@ -319,7 +329,103 @@ export default function Home() {
                   ))}
                 </div>
               </section>
+
               <section className="mt-auto mb-4">
+                <div className="relative my-2">
+                  <div className="w-full h-96">
+                    <div className="flex flex-wrap h-full">
+                      <div className="w-1/3 p-8">
+                        <div className="p-4 border rounded-md h-full">
+                          <section>
+                            <h2 className="font-bold mb-1">
+                              <div className="flex items-center">
+                                <FaArrowTrendUp className="mr-2" />
+                                Trend
+                              </div>
+                            </h2>
+                            <p className="text-xs">Query trend prompts.</p>
+                          </section>
+                          <section className="flex p-4">
+                            <div className="mr-2 border rounded-full text-xs px-3 py-1 bg-white text-black">
+                              all
+                            </div>
+                            <div className="mr-2 border rounded-full text-xs px-3 py-1">
+                              #transactions
+                            </div>
+                            <div className="mr-2 border rounded-full text-xs px-3 py-1">
+                              #nfts
+                            </div>
+                            <div className="mr-2 border rounded-full text-xs px-3 py-1">
+                              #tokens
+                            </div>
+                            <div className="mr-2 border rounded-full text-xs px-3 py-1">
+                              more...
+                            </div>
+                          </section>
+                          <section>
+                            <div className="flex flex-col px-4">
+                              <div
+                                className="border rounded-md px-2 py-1 mb-2 cursor-pointer hover:bg-white hover:text-black"
+                                onClick={selectTrendPrompt}
+                              >
+                                hey
+                              </div>
+                              <div className="border rounded-md px-2 py-1 mb-2 cursor-pointer hover:bg-white hover:text-black">
+                                show my latest transactions
+                              </div>
+                              <div className="border rounded-md px-2 py-1 mb-2 cursor-pointer hover:bg-white hover:text-black">
+                                show my nfts in a gallery format
+                              </div>
+                            </div>
+                          </section>
+                        </div>
+                      </div>
+                      <div className="w-1/3 p-8">
+                        <div className="p-4 border rounded-md h-full">
+                          <section>
+                            <h2 className="font-bold mb-1">
+                              <div className="flex items-center">
+                                <FaGlobe className="mr-2" />
+                                Social
+                              </div>
+                            </h2>
+                            <p className="text-xs">
+                              Explore around many prompts.
+                            </p>
+                          </section>
+                          <section>
+                            <div className="w-52 h-52 mx-auto">
+                              <img
+                                className="w-full h-full"
+                                src="/socialimg.png"
+                              />
+                            </div>
+                          </section>
+                          <section>
+                            <div className="flex justify-center">
+                              <button className="border-2 font-bold px-8 py-2 rounded-md">
+                                Explore
+                              </button>
+                            </div>
+                          </section>
+                        </div>
+                      </div>
+                      <div className="w-1/3 p-8">
+                        <div className="p-4 border rounded-md h-full">
+                          <section>
+                            <div className="flex items-center">
+                              <FaTools className="mr-2" />
+                              Fix
+                            </div>
+                            <p className="text-xs">
+                              Fix prompts and get rewards.
+                            </p>
+                          </section>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <form onSubmit={handleSubmit}>
                   <div className="relative">
                     <input
