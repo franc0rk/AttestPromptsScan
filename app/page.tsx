@@ -32,6 +32,7 @@ import {
 } from "react-icons/fa";
 import { FaArrowTrendUp, FaMessage } from "react-icons/fa6";
 import TagsSection from "./components/TagsSection";
+import Fixer from "./components/Fixer";
 
 export default function Home() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -232,11 +233,18 @@ export default function Home() {
     setGroupedLikes(groupedByAttestationId);
   }
 
-  const [mode, setMode] = useState<"chat" | "social">("chat");
+  const [mode, setMode] = useState<"chat" | "social" | "fixer">("chat");
 
   const LABELS: any = { "transactions-table": "Transactions" };
 
   const [openedMessages, setOpenedMessages] = useState<any>({});
+
+  const [currentFixing, setCurrentFixing] = useState("");
+
+  function openFixer(prompt: string) {
+    setMode("fixer");
+    setCurrentFixing(prompt);
+  }
 
   function openMessage(msgIndex: number, sectionIndex: number): void {
     setOpenedMessages((prev: any) => ({
@@ -273,6 +281,18 @@ export default function Home() {
         (a: any) => a.attester === address && a.type === "dislike"
       ) && "bg-white text-black"
     );
+  }
+
+  function addAttestationMsg(attestationId: string): void {
+    setChatMessages((prevValue) => [
+      ...prevValue,
+      {
+        message: `[fix] Created a fix ${attestationId}`,
+        sent: true,
+        attestation: attestationId,
+      },
+    ]);
+    setMode("chat");
   }
 
   return (
@@ -594,6 +614,13 @@ export default function Home() {
                   ))}
                 </section>
               )}
+              {mode === "fixer" && (
+                <Fixer
+                  onAttest={(e) => addAttestationMsg(e)}
+                  signer={signer}
+                  prompt={currentFixing}
+                />
+              )}
 
               <section className="mt-auto mb-4">
                 {mode === "chat" && showCards && (
@@ -678,6 +705,7 @@ export default function Home() {
                                   (p: any, pIndex: number) => (
                                     <div
                                       key={pIndex}
+                                      onClick={() => openFixer(p.prompt)}
                                       className="flex border-b p-2 items-center hover:bg-white cursor-pointer hover:text-black"
                                     >
                                       <div className="flex flex-col w-96">
