@@ -30,13 +30,7 @@ import {
   FaTools,
   FaWallet,
 } from "react-icons/fa";
-import {
-  FaArrowTrendUp,
-  FaArrowUp19,
-  FaArrowUp91,
-  FaArrowUpRightDots,
-  FaMessage,
-} from "react-icons/fa6";
+import { FaArrowTrendUp, FaMessage } from "react-icons/fa6";
 import TagsSection from "./components/TagsSection";
 
 export default function Home() {
@@ -81,7 +75,6 @@ export default function Home() {
         ...chatMessages,
         { message: currentAnswer, sent: false, content, data: responseData },
       ]);
-      console.log(currentAnswer, content);
     }
     setChatMessages((prev) => [
       ...prev,
@@ -142,7 +135,6 @@ export default function Home() {
     const provider = new ethers.BrowserProvider(window.ethereum);
     const _signer = await provider.getSigner();
     const _address = await _signer.getAddress();
-    console.log(_address, "address");
 
     setSigner(_signer);
     setAddress(_address);
@@ -161,11 +153,25 @@ export default function Home() {
     });
   }
 
+  const [showFailureMsg, setShowFailureMsg] = useState(false);
+  async function attestFailure(msg: string) {
+    await attest(signer, {
+      prompt: msg,
+      tags: ["#failures"],
+    });
+
+    setCurrentAnswer("");
+    setResponseData("");
+    setShowFailureMsg(true);
+  }
+
   const [history, setHistory] = useState<any>([]);
+  const [failurePrompts, setFailurePrompts] = useState<any>([]);
 
   async function fetchHistory() {
     const hist = await getHistory(signer);
-    setHistory(hist);
+    const _history = hist.filter((p) => !p.tags?.includes("#failures"));
+    setHistory(_history);
   }
 
   function selectTrendPrompt(msg: string) {
@@ -174,10 +180,20 @@ export default function Home() {
     setMode("chat");
     setShowCards(false);
     setCurrentMessage(msg);
-    setChatMessages([...chatMessages, { message: msg, sent: true }]);
-    setCurrentMessage("");
-    fetchTransactionData(msg);
+    setTimeout(() => {
+      setChatMessages([...chatMessages, { message: msg, sent: true }]);
+      setCurrentMessage("");
+      fetchTransactionData(msg);
+    });
   }
+
+  const [tmpCurrentMessage, setTmpCurrentMessage] = useState("");
+
+  useEffect(() => {
+    if (currentMessage) {
+      setTmpCurrentMessage(currentMessage);
+    }
+  }, [currentMessage]);
 
   const [showCards, setShowCards] = useState(false);
 
@@ -198,12 +214,13 @@ export default function Home() {
 
   async function fetchAllPrompts() {
     const prompts = await getAllPromptsBySchema(signer);
-    setAllPrompts(prompts);
+    setAllPrompts(prompts.filter((p) => !p.tags.includes("#failures")));
+
+    setFailurePrompts(prompts.filter((p) => p.tags.includes("#failures")));
   }
 
   async function fetchAllLikes() {
     const likes = await getAllPromptsByLikeSchema(signer);
-    console.log(likes);
     const groupedByAttestationId = likes.reduce((acc: any, item: any) => {
       if (!acc[item.attestationId]) {
         acc[item.attestationId] = [];
@@ -212,7 +229,6 @@ export default function Home() {
       return acc;
     }, {});
     setAllLikes(likes);
-    console.log(groupedByAttestationId);
     setGroupedLikes(groupedByAttestationId);
   }
 
@@ -473,6 +489,14 @@ export default function Home() {
                   ))}
                   <div className="my-8">
                     <TypingEffect text={currentAnswer} speed={50} />
+                    {showFailureMsg && (
+                      <TypingEffect
+                        text={
+                          "Thanks for reporting the result. We will try to fix this prompt answer ASAP, is there anything else I could help you with?"
+                        }
+                        speed={50}
+                      />
+                    )}
                     <br />
                     {loading && (
                       <div className="animate-blink w-4 h-4 bg-white my-8"></div>
@@ -499,7 +523,10 @@ export default function Home() {
                           <FaTools className="mr-2" /> I can improve this prompt
                         </button>
                       )}
-                      <button className="slide-up flex items-center px-3 py-1 text-xs font-bold border-2 rounded-md text-red-300 border-red-500 hover:bg-gray-200 hover:text-red-500">
+                      <button
+                        onClick={() => attestFailure(tmpCurrentMessage)}
+                        className="slide-up flex items-center px-3 py-1 text-xs font-bold border-2 rounded-md text-red-300 border-red-500 hover:bg-gray-200 hover:text-red-500"
+                      >
                         <FaExclamationTriangle className="mr-2" /> I think this
                         is a wrong answer to my prompt
                       </button>
@@ -626,7 +653,7 @@ export default function Home() {
                               <div className="flex justify-center">
                                 <button
                                   onClick={() => setMode("social")}
-                                  className="border-2 font-bold px-8 py-2 rounded-md"
+                                  className="border-2 font-bold px-8 py-2 rounded-md text-sm"
                                 >
                                   Explore
                                 </button>
@@ -635,7 +662,7 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="w-1/3 p-8">
-                          <div className="p-4 border rounded-md h-full">
+                          <div className="flex flex-col p-4 border rounded-md h-full">
                             <section>
                               <div className="flex items-center">
                                 <FaTools className="mr-2" />
@@ -644,6 +671,40 @@ export default function Home() {
                               <p className="text-xs">
                                 Fix prompts and get rewards.
                               </p>
+                            </section>
+                            <section>
+                              <div className="failures flex flex-col">
+                                {failurePrompts.map(
+                                  (p: any, pIndex: number) => (
+                                    <div
+                                      key={pIndex}
+                                      className="flex border-b p-2 items-center hover:bg-white cursor-pointer hover:text-black"
+                                    >
+                                      <div className="flex flex-col w-96">
+                                        <div>{p.prompt}</div>
+                                        {p.attester === address && (
+                                          <div className="p-1 border text-xs font-bold w-12 rounded-md">
+                                            Mine
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center">
+                                        <FaEthereum /> 0.001
+                                      </div>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </section>
+                            <section className="mt-auto">
+                              <div className="flex justify-center">
+                                <button
+                                  onClick={() => setMode("social")}
+                                  className="border-2 font-bold px-8 py-2 rounded-md text-sm"
+                                >
+                                  Rewards (coming soon)
+                                </button>
+                              </div>
                             </section>
                           </div>
                         </div>

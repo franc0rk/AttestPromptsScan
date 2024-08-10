@@ -139,8 +139,6 @@ export async function getAllPromptsBySchema(signer: any) {
     query: getAllQuery(),
   });
 
-  console.log(data);
-
   const easContractAddress = "0x4200000000000000000000000000000000000021";
   const eas = new EAS(easContractAddress);
   const schemaEncoder = new SchemaEncoder("string prompt,string[] tags");
@@ -164,7 +162,6 @@ export async function getAllPromptsBySchema(signer: any) {
 
   // Transform the history array to the desired format
   const transformedHistory = history.map((item: any) => {
-    console.log(item);
     const promptField = item.data.find((field: any) => field.name === "prompt");
     const tagsField = item.data.find((field: any) => field.name === "tags");
 
