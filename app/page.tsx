@@ -416,7 +416,9 @@ export default function Home() {
                               </h2>
                               <p className="text-xs">Query trend prompts.</p>
                             </section>
-                            <TagsSection />
+                            <div className="max-w-full overflow-x-auto">
+                              <TagsSection />
+                            </div>
                             <section>
                               <div className="flex flex-col px-4">
                                 {allPrompts.slice(0, 3).map((p) => (

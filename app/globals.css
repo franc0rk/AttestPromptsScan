@@ -99,3 +99,28 @@ main {
 .slide-in {
   animation: slide-in 1s ease-out;
 }
+
+/* Styling for WebKit browsers */
+.max-w-full {
+  overflow-x: auto;
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: transparent transparent; /* For Firefox */
+}
+
+.max-w-full::-webkit-scrollbar {
+  height: 8px; /* Set the height of the scrollbar */
+}
+
+.max-w-full::-webkit-scrollbar-track {
+  background: transparent; /* Background of the track (part the thumb moves within) */
+}
+
+.max-w-full::-webkit-scrollbar-thumb {
+  background: #000; /* Color of the scroll thumb (the draggable part) */
+  border-radius: 100%; /* Make it rounded */
+  border: 3px solid transparent; /* Border to make it look like a line */
+}
+
+.max-w-full::-webkit-scrollbar-thumb:hover {
+  background: #333; /* Change color on hover if needed */
+}
