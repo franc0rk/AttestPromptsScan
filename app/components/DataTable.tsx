@@ -4,14 +4,19 @@ import React from "react";
 interface DataTableProps {
   data: any[];
   columns: any[];
+  animated: boolean;
 }
 
-const DataTable: React.FC<DataTableProps> = ({ data }) => {
+const DataTable: React.FC<DataTableProps> = ({ data, animated = true }) => {
   const rowsPerPage = 5;
   const totalPages = Math.ceil(data.length / rowsPerPage);
 
   return (
-    <div className="data-table bg-gray-900 text-white rounded-lg overflow-hidden shadow-lg slide-in">
+    <div
+      className={`data-table bg-gray-900 text-white rounded-lg overflow-hidden shadow-lg ${
+        animated && "slide-in"
+      }`}
+    >
       <section className="p-4 bg-gray-800 flex justify-between items-center">
         <ul className="flex space-x-4 text-sm">
           <li className="cursor-pointer hover:text-gray-400">

@@ -41,9 +41,14 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [chatMessages, setChatMessages] = useState<
-    { message: string; sent?: boolean; attestation?: string }[]
-  >([]);
+  interface IMessage {
+    message: string;
+    sent?: boolean;
+    attestation?: string;
+    content?: any[];
+    data?: any;
+  }
+  const [chatMessages, setChatMessages] = useState<IMessage[]>([]);
 
   const [currentMessage, setCurrentMessage] = useState<string>("");
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
@@ -56,21 +61,36 @@ export default function Home() {
       messagesContainerRef.current.scrollTop =
         messagesContainerRef.current.scrollHeight;
     }
-  }, [chatMessages]);
+  }, [chatMessages, responseData]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     e && e.preventDefault();
+    setShowCards(false);
     addMessage();
     fetchTransactionData(currentMessage);
   };
 
   function addMessage() {
-    setChatMessages([...chatMessages, { message: currentMessage, sent: true }]);
+    if (currentAnswer) {
+      setChatMessages([
+        ...chatMessages,
+        { message: currentAnswer, sent: false, content, data: responseData },
+      ]);
+      console.log(currentAnswer, content);
+    }
+    setChatMessages((prev) => [
+      ...prev,
+      { message: currentMessage, sent: true },
+    ]);
     setCurrentMessage("");
+    setContent([]);
+    setResponseData("");
+    setCurrentAnswer("");
   }
 
   async function fetchTransactionData(_msg: string) {
     setLoading(true);
+
     setError(null);
 
     try {
@@ -169,6 +189,20 @@ export default function Home() {
   }
 
   const [mode, setMode] = useState<"chat" | "social">("chat");
+
+  const LABELS: any = { "transactions-table": "Transactions" };
+
+  const [openedMessages, setOpenedMessages] = useState<any>({});
+
+  function openMessage(msgIndex: number, sectionIndex: number): void {
+    setOpenedMessages((prev: any) => ({
+      ...prev,
+      [`${msgIndex}-${sectionIndex}`]: !prev[`${msgIndex}-${sectionIndex}`],
+    }));
+  }
+  function openedMessage(msgIndex: number, sectionIndex: number): boolean {
+    return openedMessages[`${msgIndex}-${sectionIndex}`];
+  }
 
   return (
     <div className="flex flex-wrap h-screen">
@@ -312,11 +346,49 @@ export default function Home() {
                   {chatMessages.map((msg, msgIndex) => (
                     <div
                       key={msgIndex}
-                      className={`text-lg border rounded-md px-3 py-2 my-1 max-w-48 ${
-                        msg.sent ? "self-end mr-2" : "self-start ml-2"
+                      className={`text-lg border-2 rounded-md px-3 py-2 my-2   ${
+                        msg.sent
+                          ? "self-end mr-2 "
+                          : "self-start ml-2 border-gray-600"
                       }`}
                     >
-                      {msg.message}
+                      {!msg.sent && (
+                        <div className="text-xs font-bold">ChatScout:</div>
+                      )}{" "}
+                      <span className="text-sm">{msg.message}</span>
+                      {msg.content && (
+                        <div>
+                          {msg.content?.map(
+                            (section: any, sectionIndex: number) => (
+                              <div
+                                className="text-sm font-bold my-1"
+                                key={sectionIndex}
+                              >
+                                <button
+                                  onClick={() =>
+                                    openMessage(msgIndex, sectionIndex)
+                                  }
+                                >
+                                  &gt; {LABELS[section.key]}
+                                </button>
+                                {openedMessage(msgIndex, sectionIndex) && (
+                                  <div>
+                                    {msg.data?.items &&
+                                      section.component === "table" && (
+                                        <DataTable
+                                          animated={false}
+                                          data={msg.data.items}
+                                          columns={[]}
+                                          key={section.key}
+                                        />
+                                      )}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
                       {address && msg.sent && (
                         <div>
                           {msg.attestation ? (
@@ -352,6 +424,7 @@ export default function Home() {
                               data={responseData.items}
                               columns={[]}
                               key={section.key}
+                              animated={true}
                             />
                           )}
                       </div>
