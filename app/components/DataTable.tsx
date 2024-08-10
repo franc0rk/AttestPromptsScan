@@ -5,9 +5,14 @@ interface DataTableProps {
   data: any[];
   columns: any[];
   animated: boolean;
+  address?: string;
 }
 
-const DataTable: React.FC<DataTableProps> = ({ data, animated = true }) => {
+const DataTable: React.FC<DataTableProps> = ({
+  data,
+  animated = true,
+  address,
+}) => {
   const rowsPerPage = 5;
   const totalPages = Math.ceil(data.length / rowsPerPage);
 
@@ -55,13 +60,13 @@ const DataTable: React.FC<DataTableProps> = ({ data, animated = true }) => {
                   {row.timestamp}
                 </td>
                 <td className="px-2 py-1 border border-white text-xs">
-                  {row.from.hash.slice(0, 9)}{" "}
+                  {row.from.hash.slice(0, 9)}...
                   <span className="ml-2 font-bold border p-1 text-xs rounded-md">
-                    OUT
+                    {row.from.hash === address ? "OUT" : "IN"}
                   </span>
                 </td>
                 <td className="px-2 py-1 border border-white">
-                  {row.to.hash.slice(0, 9)}
+                  {row.to.hash.slice(0, 9)}...
                 </td>
                 <td className="px-2 py-1 border border-white">
                   {Number(row.value) / 1000000000000000000 || 0} ETH
@@ -75,14 +80,12 @@ const DataTable: React.FC<DataTableProps> = ({ data, animated = true }) => {
         </table>
       </section>
       <section className="p-4 bg-gray-800 text-sm flex justify-between items-center">
-        <span>
-          Showing 1-{rowsPerPage} of {data.length} rows
-        </span>
+        <span>Showing 1-n of {data.length} rows</span>
         <div className="flex space-x-2 items-center">
           <button className="px-3 py-1 bg-gray-700 rounded-lg hover:bg-gray-600">
             Previous
           </button>
-          <span>Page 1 of {totalPages}</span>
+          <span>Page 1 of n</span>
           <button className="px-3 py-1 bg-gray-700 rounded-lg hover:bg-gray-600">
             Next
           </button>

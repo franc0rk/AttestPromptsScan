@@ -133,17 +133,18 @@ export default function Home() {
   }
 
   const [signer, setSigner] = useState<any>(null);
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState<string>("");
   const [network, setNetwork] = useState("Optimism-Sepolia");
 
   async function connectWallet() {
     // @ts-ignore
     const provider = new ethers.BrowserProvider(window.ethereum);
     const _signer = await provider.getSigner();
-    const address = await _signer.getAddress();
+    const _address = await _signer.getAddress();
+    console.log(_address, "address");
 
     setSigner(_signer);
-    setAddress(address);
+    setAddress(_address);
   }
 
   async function attestPrompt(msg: any, msgIndex: number) {
@@ -430,6 +431,7 @@ export default function Home() {
                                           animated={false}
                                           data={msg.data.items}
                                           columns={[]}
+                                          address={address}
                                           key={section.key}
                                         />
                                       )}
@@ -474,6 +476,7 @@ export default function Home() {
                             <DataTable
                               data={responseData.items}
                               columns={[]}
+                              address={address}
                               key={section.key}
                               animated={true}
                             />
