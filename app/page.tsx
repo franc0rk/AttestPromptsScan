@@ -22,6 +22,7 @@ import {
   FaCube,
   FaEthereum,
   FaExchangeAlt,
+  FaExclamationTriangle,
   FaGasPump,
   FaGlobe,
   FaThumbsDown,
@@ -193,6 +194,8 @@ export default function Home() {
   const [allLikes, setAllLikes] = useState<any[]>([]);
   const [groupedLikes, setGroupedLikes] = useState<any[]>([]);
 
+  const [devMode, setDevMode] = useState<boolean>(false);
+
   async function fetchAllPrompts() {
     const prompts = await getAllPromptsBySchema(signer);
     setAllPrompts(prompts);
@@ -306,7 +309,12 @@ export default function Home() {
             </option>
           </select>
           <div className="relative mb-4">
-            Dev Mode <input type="checkbox" />
+            Dev Mode{" "}
+            <input
+              type="checkbox"
+              checked={devMode}
+              onChange={(e: any) => setDevMode(e.target.checked)}
+            />
           </div>
         </section>
         {address && (
@@ -484,6 +492,19 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
+                  {currentAnswer && responseData && (
+                    <div className="prompt-answer-actions flex justify-end">
+                      {devMode && (
+                        <button className="slide-up mr-4 flex items-center px-3 py-1 text-xs font-bold border-2 rounded-md text-blue-300 border-blue-500 hover:bg-gray-200 hover:text-blue-500">
+                          <FaTools className="mr-2" /> I can improve this prompt
+                        </button>
+                      )}
+                      <button className="slide-up flex items-center px-3 py-1 text-xs font-bold border-2 rounded-md text-red-300 border-red-500 hover:bg-gray-200 hover:text-red-500">
+                        <FaExclamationTriangle className="mr-2" /> I think this
+                        is a wrong answer to my prompt
+                      </button>
+                    </div>
+                  )}
                 </section>
               )}
               {mode === "social" && (
