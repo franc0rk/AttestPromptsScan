@@ -7,8 +7,12 @@ import TypingEffect from "./components/TypingEffect";
 import DataTable from "./components/DataTable";
 import { ethers } from "ethers";
 import WorldCoinButton from "./components/WorldCoinButton";
-import { attest } from "./services/eas";
-import { getAllPromptsBySchema, getHistory } from "./services/history";
+import { attest, attestLike } from "./services/eas";
+import {
+  getAllPromptsByLikeSchema,
+  getAllPromptsBySchema,
+  getHistory,
+} from "./services/history";
 import HistoryList from "./components/HistoryList";
 import {
   FaArrowUp,
@@ -163,6 +167,8 @@ export default function Home() {
   }
 
   function selectTrendPrompt(msg: string) {
+    setCurrentAnswer("");
+    setResponseData("");
     setMode("chat");
     setShowCards(false);
     setCurrentMessage(msg);
@@ -178,14 +184,32 @@ export default function Home() {
       setShowCards(true);
       fetchHistory();
       fetchAllPrompts();
+      fetchAllLikes();
     }
   }, [signer]);
 
   const [allPrompts, setAllPrompts] = useState<any[]>([]);
+  const [allLikes, setAllLikes] = useState<any[]>([]);
+  const [groupedLikes, setGroupedLikes] = useState<any[]>([]);
 
   async function fetchAllPrompts() {
     const prompts = await getAllPromptsBySchema(signer);
     setAllPrompts(prompts);
+  }
+
+  async function fetchAllLikes() {
+    const likes = await getAllPromptsByLikeSchema(signer);
+    console.log(likes);
+    const groupedByAttestationId = likes.reduce((acc: any, item: any) => {
+      if (!acc[item.attestationId]) {
+        acc[item.attestationId] = [];
+      }
+      acc[item.attestationId].push(item);
+      return acc;
+    }, {});
+    setAllLikes(likes);
+    console.log(groupedByAttestationId);
+    setGroupedLikes(groupedByAttestationId);
   }
 
   const [mode, setMode] = useState<"chat" | "social">("chat");
@@ -202,6 +226,33 @@ export default function Home() {
   }
   function openedMessage(msgIndex: number, sectionIndex: number): boolean {
     return openedMessages[`${msgIndex}-${sectionIndex}`];
+  }
+
+  async function likePrompt(prompt: any, promptIndex: number) {
+    attestLike(signer, { attestationId: prompt.attestationId, type: "like" });
+  }
+
+  async function dislikePrompt(prompt: any, promptIndex: number) {
+    attestLike(signer, {
+      attestationId: prompt.attestationId,
+      type: "dislike",
+    });
+  }
+
+  function isLikedClass(p: any) {
+    return (
+      groupedLikes[p.attestationId]?.some(
+        (a: any) => a.attester === address && a.type === "like"
+      ) && "bg-white text-black"
+    );
+  }
+
+  function isDislikedClass(p: any) {
+    return (
+      groupedLikes[p.attestationId]?.some(
+        (a: any) => a.attester === address && a.type === "dislike"
+      ) && "bg-white text-black"
+    );
   }
 
   return (
@@ -445,7 +496,7 @@ export default function Home() {
                       <div>Connect your wallet to start seeing prompts.</div>
                     )}
                   </div>
-                  {allPrompts.map((p) => (
+                  {allPrompts.map((p, pIndex) => (
                     <div className="py-4 px-8 border-b h-full">
                       <div>{p.attester}:</div>
                       <div className="flex items-center py-4">
@@ -455,11 +506,31 @@ export default function Home() {
                         </button>
                       </div>
                       <div className="flex">
-                        <button className="border px-2 py-1 rounded-md flex items-center mr-2">
-                          <FaThumbsUp /> {0}
+                        <button
+                          onClick={() => likePrompt(p, pIndex)}
+                          className={`border px-2 py-1 rounded-md flex items-center mr-2 ${isLikedClass(
+                            p
+                          )}`}
+                        >
+                          <FaThumbsUp />{" "}
+                          {groupedLikes[p.attestationId]
+                            ? groupedLikes[p.attestationId].filter(
+                                (l: any) => l.type === "like"
+                              ).length
+                            : 0}
                         </button>
-                        <button className="border px-2 py-1 rounded-md flex items-center mr-2">
-                          <FaThumbsDown /> {0}
+                        <button
+                          onClick={() => dislikePrompt(p, pIndex)}
+                          className={`border px-2 py-1 rounded-md flex items-center mr-2 ${isDislikedClass(
+                            p
+                          )}`}
+                        >
+                          <FaThumbsDown />{" "}
+                          {groupedLikes[p.attestationId]
+                            ? groupedLikes[p.attestationId].filter(
+                                (l: any) => l.type === "dislike"
+                              ).length
+                            : 0}
                         </button>
                         <button
                           onClick={() => selectTrendPrompt(p.prompt)}

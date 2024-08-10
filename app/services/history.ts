@@ -15,6 +15,9 @@ function getQuery(address: string) {
       attestations(
         where: {
           attester: { equals: "${address}" }
+          schemaId: {
+            equals: "${schemaUID}"
+          }
         }
         take: 25
         orderBy: { time: desc }
@@ -39,6 +42,31 @@ function getAllQuery() {
         where: {
           schemaId: {
             equals: "${schemaUID}"
+          }
+        }
+        take: 25
+        orderBy: { time: desc }
+      ) {
+        id
+        attester
+        recipient
+        refUID
+        revocable
+        revocationTime
+        expirationTime
+        data
+      }
+    }
+  `;
+}
+
+function getAllLikesQuery() {
+  return gql`
+    query Attestations {
+      attestations(
+        where: {
+          schemaId: {
+            equals: "0x3ac3f0b8d90545ee8179b05e577d489f495c20a2410af9bf8277b4e75e74be7c"
           }
         }
         take: 25
@@ -129,6 +157,7 @@ export async function getAllPromptsBySchema(signer: any) {
       history.push({
         data: schemaEncoder.decodeData(a.data),
         attester: attestation.attester,
+        attestationId: attestation.id,
       });
     })
   );
@@ -151,6 +180,55 @@ export async function getAllPromptsBySchema(signer: any) {
       prompt,
       tags,
       attester: item.attester,
+      attestationId: item.attestationId,
+    };
+  });
+
+  return transformedHistory;
+}
+
+export async function getAllPromptsByLikeSchema(signer: any) {
+  const { data } = await client.query({
+    query: getAllLikesQuery(),
+  });
+
+  const easContractAddress = "0x4200000000000000000000000000000000000021";
+  const eas = new EAS(easContractAddress);
+  const schemaEncoder = new SchemaEncoder("string attestationId,string type");
+
+  // Signer must be an ethers-like signer.
+  await eas.connect(signer);
+
+  const history: any[] = [];
+
+  // Use Promise.all to handle multiple asynchronous calls
+  await Promise.all(
+    data.attestations.map(async (attestation: any) => {
+      const a = await eas.getAttestation(attestation.id);
+      history.push({
+        data: schemaEncoder.decodeData(a.data),
+        attester: attestation.attester,
+        attestation: attestation.id,
+      });
+    })
+  );
+
+  // Transform the history array to the desired format
+  const transformedHistory = history.map((item: any) => {
+    const promptField = item.data.find(
+      (field: any) => field.name === "attestationId"
+    );
+    const tagsField = item.data.find((field: any) => field.name === "type");
+
+    // Extract values and handle proxy objects if necessary
+    const attestationId = promptField ? promptField.value.value : "";
+    const type = tagsField ? tagsField.value.value : "";
+
+    return {
+      attestationId,
+      type,
+      attester: item.attester,
+      attestation: item.attestation,
     };
   });
 
