@@ -126,14 +126,18 @@ export async function getAllPromptsBySchema(signer: any) {
   await Promise.all(
     data.attestations.map(async (attestation: any) => {
       const a = await eas.getAttestation(attestation.id);
-      history.push(schemaEncoder.decodeData(a.data));
+      history.push({
+        data: schemaEncoder.decodeData(a.data),
+        attester: attestation.attester,
+      });
     })
   );
 
   // Transform the history array to the desired format
   const transformedHistory = history.map((item: any) => {
-    const promptField = item.find((field: any) => field.name === "prompt");
-    const tagsField = item.find((field: any) => field.name === "tags");
+    console.log(item);
+    const promptField = item.data.find((field: any) => field.name === "prompt");
+    const tagsField = item.data.find((field: any) => field.name === "tags");
 
     // Extract values and handle proxy objects if necessary
     const prompt = promptField ? promptField.value.value : "";
@@ -146,6 +150,7 @@ export async function getAllPromptsBySchema(signer: any) {
     return {
       prompt,
       tags,
+      attester: item.attester,
     };
   });
 

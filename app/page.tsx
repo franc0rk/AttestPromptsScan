@@ -11,16 +11,28 @@ import { attest } from "./services/eas";
 import { getAllPromptsBySchema, getHistory } from "./services/history";
 import HistoryList from "./components/HistoryList";
 import {
+  FaArrowUp,
+  FaClipboard,
   FaClock,
+  FaCopy,
   FaCube,
   FaEthereum,
   FaExchangeAlt,
   FaGasPump,
   FaGlobe,
+  FaThumbsDown,
+  FaThumbsUp,
   FaTools,
   FaWallet,
 } from "react-icons/fa";
-import { FaArrowTrendUp } from "react-icons/fa6";
+import {
+  FaArrowTrendUp,
+  FaArrowUp19,
+  FaArrowUp91,
+  FaArrowUpRightDots,
+  FaMessage,
+} from "react-icons/fa6";
+import TagsSection from "./components/TagsSection";
 
 export default function Home() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -131,14 +143,19 @@ export default function Home() {
   }
 
   function selectTrendPrompt(msg: string) {
+    setMode("chat");
+    setShowCards(false);
     setCurrentMessage(msg);
     setChatMessages([...chatMessages, { message: msg, sent: true }]);
     setCurrentMessage("");
     fetchTransactionData(msg);
   }
 
+  const [showCards, setShowCards] = useState(false);
+
   useEffect(() => {
     if (signer) {
+      setShowCards(true);
       fetchHistory();
       fetchAllPrompts();
     }
@@ -150,6 +167,8 @@ export default function Home() {
     const prompts = await getAllPromptsBySchema(signer);
     setAllPrompts(prompts);
   }
+
+  const [mode, setMode] = useState<"chat" | "social">("chat");
 
   return (
     <div className="flex flex-wrap h-screen">
@@ -285,61 +304,104 @@ export default function Home() {
         <main>
           <div className="w-full h-full  mx-auto">
             <div className="flex flex-col w-full h-full">
-              <section
-                ref={messagesContainerRef}
-                className="flex flex-col messages"
-              >
-                {chatMessages.map((msg, msgIndex) => (
-                  <div
-                    key={msgIndex}
-                    className={`text-lg border rounded-md px-3 py-2 my-1 max-w-48 ${
-                      msg.sent ? "self-end mr-2" : "self-start ml-2"
-                    }`}
-                  >
-                    {msg.message}
-                    {address && msg.sent && (
-                      <div>
-                        {msg.attestation ? (
-                          <a
-                            href={`https://optimism-sepolia.easscan.org/attestation/view/${msg.attestation}`}
-                            className="text-xs font-bold px-2 py-1 border rounded-md"
-                          >
-                            View
-                          </a>
-                        ) : (
-                          <button
-                            onClick={() => attestPrompt(msg, msgIndex)}
-                            className="text-xs font-bold px-2 py-1 border rounded-md"
-                          >
-                            Attest
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                <div className="my-8">
-                  <TypingEffect text={currentAnswer} speed={50} />
-                  <br />
-                  {loading && (
-                    <div className="animate-blink w-4 h-4 bg-white my-8"></div>
-                  )}
-                  {content.map((section) => (
-                    <div>
-                      {responseData.items && section.component === "table" && (
-                        <DataTable
-                          data={responseData.items}
-                          columns={[]}
-                          key={section.key}
-                        />
+              {mode === "chat" && (
+                <section
+                  ref={messagesContainerRef}
+                  className="flex flex-col messages"
+                >
+                  {chatMessages.map((msg, msgIndex) => (
+                    <div
+                      key={msgIndex}
+                      className={`text-lg border rounded-md px-3 py-2 my-1 max-w-48 ${
+                        msg.sent ? "self-end mr-2" : "self-start ml-2"
+                      }`}
+                    >
+                      {msg.message}
+                      {address && msg.sent && (
+                        <div>
+                          {msg.attestation ? (
+                            <a
+                              href={`https://optimism-sepolia.easscan.org/attestation/view/${msg.attestation}`}
+                              className="text-xs font-bold px-2 py-1 border rounded-md"
+                            >
+                              View
+                            </a>
+                          ) : (
+                            <button
+                              onClick={() => attestPrompt(msg, msgIndex)}
+                              className="text-xs font-bold px-2 py-1 border rounded-md"
+                            >
+                              Attest
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   ))}
-                </div>
-              </section>
+                  <div className="my-8">
+                    <TypingEffect text={currentAnswer} speed={50} />
+                    <br />
+                    {loading && (
+                      <div className="animate-blink w-4 h-4 bg-white my-8"></div>
+                    )}
+                    {content.map((section) => (
+                      <div>
+                        {responseData.items &&
+                          section.component === "table" && (
+                            <DataTable
+                              data={responseData.items}
+                              columns={[]}
+                              key={section.key}
+                            />
+                          )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+              {mode === "social" && (
+                <section className="flex flex-col m-4 border-2 rounded-md">
+                  <h2 className="text-2xl font-bold p-4">ChatScout - Social</h2>
+                  <div className="p-4">
+                    <input
+                      className="w-full bg-transparent border-2 px-2 py-1 rounded-md"
+                      placeholder="Search prompts"
+                    />
+                    <TagsSection />
+                    {allPrompts.length == 0 && (
+                      <div>Connect your wallet to start seeing prompts.</div>
+                    )}
+                  </div>
+                  {allPrompts.map((p) => (
+                    <div className="py-4 px-8 border-b h-full">
+                      <div>{p.attester}:</div>
+                      <div className="flex items-center py-4">
+                        {p.prompt}{" "}
+                        <button>
+                          <FaCopy />
+                        </button>
+                      </div>
+                      <div className="flex">
+                        <button className="border px-2 py-1 rounded-md flex items-center mr-2">
+                          <FaThumbsUp /> {0}
+                        </button>
+                        <button className="border px-2 py-1 rounded-md flex items-center mr-2">
+                          <FaThumbsDown /> {0}
+                        </button>
+                        <button
+                          onClick={() => selectTrendPrompt(p.prompt)}
+                          className="text-xs font-bold border px-2 py-1 rounded-md flex items-center mr-2"
+                        >
+                          Try!
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </section>
+              )}
 
               <section className="mt-auto mb-4">
-                {signer && !currentMessage && (
+                {mode === "chat" && showCards && (
                   <div className="relative my-2">
                     <div className="w-full h-96">
                       <div className="flex flex-wrap h-full">
@@ -354,23 +416,7 @@ export default function Home() {
                               </h2>
                               <p className="text-xs">Query trend prompts.</p>
                             </section>
-                            <section className="flex p-4">
-                              <div className="mr-2 border rounded-full text-xs px-3 py-1 bg-white text-black">
-                                all
-                              </div>
-                              <div className="mr-2 border rounded-full text-xs px-3 py-1">
-                                #transactions
-                              </div>
-                              <div className="mr-2 border rounded-full text-xs px-3 py-1">
-                                #nfts
-                              </div>
-                              <div className="mr-2 border rounded-full text-xs px-3 py-1">
-                                #tokens
-                              </div>
-                              <div className="mr-2 border rounded-full text-xs px-3 py-1">
-                                more...
-                              </div>
-                            </section>
+                            <TagsSection />
                             <section>
                               <div className="flex flex-col px-4">
                                 {allPrompts.slice(0, 3).map((p) => (
@@ -408,7 +454,10 @@ export default function Home() {
                             </section>
                             <section>
                               <div className="flex justify-center">
-                                <button className="border-2 font-bold px-8 py-2 rounded-md">
+                                <button
+                                  onClick={() => setMode("social")}
+                                  className="border-2 font-bold px-8 py-2 rounded-md"
+                                >
                                   Explore
                                 </button>
                               </div>
@@ -434,8 +483,24 @@ export default function Home() {
                 )}
                 <form onSubmit={handleSubmit}>
                   <div className="relative">
+                    <div className="absolute left-2 top-2">
+                      <button
+                        type="button"
+                        className="flex items-center px-4 py-1 border rounded-full text-xs font-bold hover:bg-white hover:text-black"
+                        onClick={() =>
+                          setMode(mode === "social" ? "chat" : "social")
+                        }
+                      >
+                        {mode === "social" ? (
+                          <FaMessage className="mr-1" />
+                        ) : (
+                          <FaGlobe className="mr-1" />
+                        )}
+                        {mode === "social" ? "Chat" : "Social"}
+                      </button>
+                    </div>
                     <input
-                      className="rounded-md w-full p-2 bg-transparent border-2 border-white"
+                      className="rounded-md w-full p-2 pl-28 bg-transparent border-2 border-white"
                       placeholder="Type your message"
                       value={currentMessage}
                       onChange={(e) => setCurrentMessage(e.target.value)}
