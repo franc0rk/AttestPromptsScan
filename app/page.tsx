@@ -521,8 +521,8 @@ export default function Home() {
                     {loading && (
                       <div className="animate-blink w-4 h-4 bg-white my-8"></div>
                     )}
-                    {content.map((section) => (
-                      <div>
+                    {content.map((section, sectionIndex) => (
+                      <div key={sectionIndex}>
                         {responseData.items &&
                           section.component === "table" && (
                             <DataTable
@@ -568,7 +568,7 @@ export default function Home() {
                     )}
                   </div>
                   {allPrompts.map((p, pIndex) => (
-                    <div className="py-4 px-8 border-b h-full">
+                    <div className="py-4 px-8 border-b h-full" key={pIndex}>
                       <div>{p.attester}:</div>
                       <div className="flex items-center py-4">
                         {p.prompt}{" "}
@@ -643,8 +643,9 @@ export default function Home() {
                             </div>
                             <section>
                               <div className="flex flex-col px-4">
-                                {allPrompts.slice(0, 3).map((p) => (
+                                {allPrompts.slice(0, 3).map((p, pIndex) => (
                                   <div
+                                    key={pIndex}
                                     className="border rounded-md px-2 py-1 mb-2 cursor-pointer hover:bg-white hover:text-black"
                                     onClick={() => selectTrendPrompt(p.prompt)}
                                   >
